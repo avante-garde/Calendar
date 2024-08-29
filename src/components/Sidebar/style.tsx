@@ -33,23 +33,16 @@ const CreateButton = styled.button`
   align-items: center;
   height: 48px;
   width: 147px;
-  border: 1px solid lightgrey;
+  border: 1px solid rgb(241, 243, 244);
   border-radius: 24px;
   background-color: white;
 `;
 
-const GoogleAddIcon = styled.svg`
-  
-`;
+const GoogleAddIcon = styled.svg``;
 
+const CreateButtonText = styled.div``;
 
-const CreateButtonText = styled.div`
-
-`;
-
-const ArrowDropDown = styled(ArrowDropDownIcon)`
-
-`;
+const ArrowDropDown = styled(ArrowDropDownIcon)``;
 
 const SidebarCalendarWrapper = styled.div`
   height: 300px;
@@ -69,7 +62,7 @@ const SidebarCalendar = styled(DateCalendar)`
 
   &
     .MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeSmall.MuiPickersCalendarHeader-switchViewButton {
-    display: none;
+    // display: none;
   }
 
   &
@@ -80,17 +73,19 @@ const SidebarCalendar = styled(DateCalendar)`
   &
     .MuiSvgIcon-root.MuiSvgIcon-fontSizeInherit.MuiPickersArrowSwitcher-leftArrowIcon {
     height: 18px;
+    color: #3c4043;
   }
 
   &
     .MuiSvgIcon-root.MuiSvgIcon-fontSizeInherit.MuiPickersArrowSwitcher-rightArrowIcon {
     height: 18px;
+    color: #3c4043;
   }
 
   & .MuiPickersCalendarHeader-label {
     font-size: 14px;
     font-weight: 500;
-    color: rgb(60, 64, 67);
+    color: #3c4043;
   }
 
   & .MuiPickersArrowSwitcher-spacer {
@@ -98,12 +93,13 @@ const SidebarCalendar = styled(DateCalendar)`
   }
 
   & .MuiTypography-root.MuiTypography-caption.MuiDayCalendar-weekDayLabel {
-    font-size: 9px;
-    font-weight: 500;
+    font-size: 10px;
+    font-weight: 600;
+    color: #70757a;
   }
 
   & .MuiButtonBase-root.MuiPickersDay-root.MuiPickersDay-dayWithMargin {
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 500;
   }
 `;

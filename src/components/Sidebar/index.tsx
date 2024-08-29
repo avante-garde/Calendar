@@ -14,10 +14,6 @@ import {
 const Sidebar = () => {
   const calendarRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    console.log("Calendar ref: ", calendarRef);
-  }, [calendarRef]);
-
   return (
     <SidebarWrapper id="sidebar-wrapper">
       <CreateButtonContainer id="create-button-container">

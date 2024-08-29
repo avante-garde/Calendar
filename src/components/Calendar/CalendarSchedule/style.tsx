@@ -17,7 +17,7 @@ const TimeContainer = styled.div`
 const SpacerBetweenHourTimeBlock = styled.div`
   height: 1232px;
   width: 10px;
-  border-right: 1px solid lightgrey;
+  border-right: 1px solid rgb(241, 243, 244);
 `;
 
 const TimesByHour = styled.div`
@@ -28,9 +28,12 @@ const HoursText = styled.span`
   display: block;
   position: relative;
   top: -6px;
-  font-size: 10px;
-  color: grey;
-  font-weight: lighter;
+  color: #70757a;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  text-align: center;
 `;
 
 const TimeBlockContainer = styled.div`
@@ -41,7 +44,7 @@ const TimeBlockContainer = styled.div`
 `;
 
 const HorizontalLinesWrapper = styled.div`
-  &:: after {
+  &::after {
     display: flex;
     flex-direction: column;
     position: absolute;
@@ -56,7 +59,7 @@ const HorizontalLines = styled.div`
   &::after {
     position: absolute;
     width: 100%;
-    border-bottom: 1px solid lightgrey;
+    border-bottom: 1px solid rgb(241, 243, 244);
     content: "";
     z-index: -1;
   }

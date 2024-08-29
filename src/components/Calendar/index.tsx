@@ -7,12 +7,22 @@ import {
   CalendarScheduleContainer,
 } from "./style";
 
-const Calendar = () => {
+interface CalendarProps {
+  currentDayNumbersInWeek: number[];
+  dayNames: string[];
+}
+
+const Calendar = (props: CalendarProps) => {
+  const { currentDayNumbersInWeek, dayNames } = props;
+
   return (
     <CalendarWrapper id="calendar-wrapper">
       <CalendarGrid container id="calendar-grid">
         <CalendarHeaderContainer item id="calendar-header-container">
-          <CalendarHeader />
+          <CalendarHeader
+            currentDayNumbersInWeek={currentDayNumbersInWeek}
+            dayNames={dayNames}
+          />
         </CalendarHeaderContainer>
         <CalendarScheduleContainer item id="calendar-schedule-container">
           <CalendarSchedule />

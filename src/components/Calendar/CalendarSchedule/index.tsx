@@ -44,8 +44,8 @@ const CalendarSchedule = () => {
     <CalendarScheduleWrapper id="calendar-schedule-wrapper">
       <TimeContainer id="time-container">
         {timesByHour.map((hour, index) => (
-          <TimesByHour key={`times-by-hour-${index}`}>
-            <HoursText>
+          <TimesByHour id="times-by-hour" key={`times-by-hour-${index}`}>
+            <HoursText id="hours-text">
               {index > 0 && index < timesByHour.length - 1 && hour}
             </HoursText>
           </TimesByHour>
