@@ -11,6 +11,18 @@ node_modules
 dist
 dist-ssr
 *.local
+build
+target
+.gradle
+.m2
+packages
+*.class
+*.tmp
+*.swp
+HELP.md
+application.properties
+application.yml
+server/.vscode/*
 
 # Editor directories and files
 .vscode/*
