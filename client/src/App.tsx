@@ -29,10 +29,12 @@ export interface IYear {
 export interface ICurrentWeekDate {
   name: string;
   date: Date;
+  startDate?: Date;
+  endDate?: Date;
 }
 
 function App() {
-  // TODO: Refactor and consolidate all of the logic within each functional component
+  // TODO: Refactor and consolidate all of the logic within each functional component for reusability
   const currentDate = new Date();
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [currentWeekStartDate, setCurrentWeekStartDate] = useState<Date>(

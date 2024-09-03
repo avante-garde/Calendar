@@ -5,6 +5,7 @@ import {
   MouseEventHandler,
   SetStateAction,
   useCallback,
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -35,11 +36,12 @@ import { ICurrentWeekDate } from "../../../../../App";
 import { months } from "../../../../../constants";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "../../../../../main";
-import { postEventAction } from "../../../../../store/eventsReducer";
+import { postEvent } from "../../../../../store/eventsReducer";
 
 interface AddEventProps {
   currentDayAddEvent: ICurrentWeekDate | undefined;
-  currentTimeSelected: string | undefined;
+  currentStartTimeSelected: string | undefined;
+  currentEndTimeSelected: string | undefined;
   left: number;
   top: number;
   setIsEventDialogOpen: Dispatch<SetStateAction<boolean>>;
@@ -51,7 +53,9 @@ export interface TimeBlockEvent {
   currEventDayNumber: number;
   currEventYear: number;
   startTime: string | undefined;
-  endTime?: string;
+  endTime: string | undefined;
+  startDate: Date;
+  endDate: Date;
   eventTitle: string;
   eventGuests: string;
   eventLocation: string;
@@ -63,7 +67,8 @@ export interface TimeBlockEvent {
 const AddEvent = (props: AddEventProps) => {
   const {
     currentDayAddEvent,
-    currentTimeSelected,
+    currentStartTimeSelected,
+    currentEndTimeSelected,
     left,
     top,
     setIsEventDialogOpen,
@@ -74,6 +79,42 @@ const AddEvent = (props: AddEventProps) => {
   const [eventGuests, setEventGuests] = useState<string>("");
   const [eventLocation, setEventLocation] = useState<string>("");
   const [eventDescription, setEventDescription] = useState<string>("");
+
+  useEffect(() => {
+    if (currentDayAddEvent && currentStartTimeSelected && currentEndTimeSelected) {
+      setHourAndMinute(currentDayAddEvent);
+    }
+  }, [currentDayAddEvent, currentStartTimeSelected, currentEndTimeSelected]);
+
+  const setHourAndMinute = useCallback((currDateSelected: ICurrentWeekDate) => {
+    if (currentStartTimeSelected && currentEndTimeSelected) {
+      const startDate = new Date(currDateSelected.date);
+      const startDateColonIndex = currentStartTimeSelected.indexOf(':');
+      const startDateAnteMeridianIndex = currentStartTimeSelected.indexOf('A');
+      const startDatePostMeridiumIndex = currentStartTimeSelected.indexOf('P');
+      const startDateMeridianIndex = startDateAnteMeridianIndex === -1 ? startDatePostMeridiumIndex : startDateAnteMeridianIndex;
+
+      const startHour = currentStartTimeSelected.substring(0, startDateColonIndex);
+      const startMinute = currentStartTimeSelected.substring(startDateColonIndex + 1, startDateMeridianIndex);
+      startDate.setHours(Number(startHour));
+      startDate.setMinutes(Number(startMinute));
+
+      currDateSelected.startDate = startDate;
+
+      const endDate = new Date(currDateSelected.date);
+      const endDateColonIndex = currentEndTimeSelected.indexOf(':');
+      const endDateAnteMeridianIndex = currentEndTimeSelected.indexOf('A');
+      const endDatePostMeridiumIndex = currentEndTimeSelected.indexOf('P');
+      const endDateMeridianIndex = endDateAnteMeridianIndex === -1 ? endDatePostMeridiumIndex : endDateAnteMeridianIndex;
+
+      const endHour = currentEndTimeSelected.substring(0, endDateColonIndex);
+      const endMinute = currentEndTimeSelected.substring(endDateColonIndex + 1, endDateMeridianIndex);
+      endDate.setHours(Number(endHour));
+      endDate.setMinutes(Number(endMinute));
+
+      currDateSelected.endDate = endDate;
+    }
+  }, [currentStartTimeSelected, currentEndTimeSelected, currentDayAddEvent]);
 
   const handleEventTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
     setEventTitle(event.target.value);
@@ -96,28 +137,32 @@ const AddEvent = (props: AddEventProps) => {
   const handleSubmit = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      console.log('submitted.');
 
-      if (currentDayAddEvent) {
+      if (currentDayAddEvent && currentStartTimeSelected && currentEndTimeSelected && currentDayAddEvent.startDate && currentDayAddEvent.endDate) {
         const event: TimeBlockEvent = {
           currEventDayOfWeek: currentDayAddEvent.name,
           currEventMonth: months[currentDayAddEvent.date.getMonth()],
           currEventDayNumber: currentDayAddEvent.date.getDate(),
           currEventYear: currentDayAddEvent.date.getFullYear(),
-          startTime: currentTimeSelected,
+          startTime: currentStartTimeSelected,
+          endTime: currentEndTimeSelected,
+          startDate: currentDayAddEvent.startDate,
+          endDate: currentDayAddEvent.endDate,
           eventTitle,
           eventGuests,
           eventLocation,
           eventDescription,
           yCoordinate: top,
         };
-        dispatchToStore(postEventAction(event));
+        dispatchToStore(postEvent(event));
 
         setIsEventDialogOpen(false);
       }
     },
     [
       currentDayAddEvent,
+      currentStartTimeSelected,
+      currentEndTimeSelected,
       eventTitle,
       eventGuests,
       eventLocation,
@@ -195,7 +240,7 @@ const AddEvent = (props: AddEventProps) => {
           <DialogSelectedDateAndTime id="dialog-selected-date-and-time">
             <TabListIconWrapper id="tab-list-icon-wrapper" />
             <TabListAction id="tab-list-action">
-              {currentDayAddEvent && currentTimeSelected && (
+              {currentDayAddEvent && currentStartTimeSelected && (
                 <span style={{ paddingLeft: "5px" }}>
                   <span id="day-name" style={{}}>
                     {currentDayAddEvent.name},
@@ -207,7 +252,7 @@ const AddEvent = (props: AddEventProps) => {
                     {currentDayAddEvent.date.getDate()}
                   </span>
                   <span style={{ marginLeft: "15px" }}>
-                    {currentTimeSelected}
+                    {currentStartTimeSelected} - {currentEndTimeSelected}
                   </span>
                 </span>
               )}

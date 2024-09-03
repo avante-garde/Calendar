@@ -31,30 +31,30 @@ const DialogHeader = styled.div`
   justify-content: space-between;
   height: 40px;
   width: 100%;
-  background-color: rgb(241, 243, 244)
+  background-color: rgb(241, 243, 244);
 `;
 
 const DialogDragHandleIconWrapper = styled.div`
   padding: 8px;
 
   &:hover {
-    background-color: rgb(200, 230, 254);
-    border-radius: 2px;
+    background-color: rgb(218,220,224);
+    border-radius: 20px;
   }
 `;
 
 const DialogDragHandleIcon = styled.div`
   height: 100%;
   width: 100%;
-  fill: rgb(154, 160, 166);
+  fill: rgb(95, 99, 104);
 `;
 
 const DialogExitIconWrapper = styled.div`
   padding: 8px;
 
   &:hover {
-    background-color: rgb(200, 230, 254);
-    border-radius: 2px;
+    background-color: rgb(218,220,224);
+    border-radius: 20px;
   }
 `;
 
@@ -76,8 +76,9 @@ const DialogTabsWrapper = styled.div`
 
 const DialogTabs = styled.div`
   display: flex;
+  justify-content: space-between;
   height: 35px;
-  width: 200px;
+  width: 110px;
   margin-top: 15px;
   margin-left: 25px;
   margin-bottom: 5px;
@@ -97,6 +98,11 @@ const DialogEventTab = styled.div`
   font-weight: 500px;
   letter-spacing: 0.25px;
   text-transform: none;
+
+  &:hover {
+    cursor: pointer;
+    background-color: rgb(241, 243, 244);
+  }
 `;
 
 const DialogTaskTab = styled.div`
@@ -110,6 +116,11 @@ const DialogTaskTab = styled.div`
   font-weight: 500px;
   letter-spacing: 0.25px;
   text-transform: none;
+
+  &:hover {
+    cursor: pointer;
+    background-color: rgb(241, 243, 244);
+  }
 `;
 
 const DialogSelectedDateAndTime = styled.div`

@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
 
 interface AddEventBubbleProps {
+  zIndex?: number;
   top: number | undefined;
 }
 
@@ -38,6 +39,7 @@ const AddEventBubble = styled.div`
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+  z-index: ${(props: AddEventBubbleProps) => props.zIndex ? props.zIndex : -1};
 
   &:hover {
     background-color: lightyellow;
