@@ -39,7 +39,7 @@ const AddEventBubble = styled.div`
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  z-index: ${(props: AddEventBubbleProps) => props.zIndex ? props.zIndex : -1};
+  z-index: ${(props: AddEventBubbleProps) => (props.zIndex ? props.zIndex : 0)};
 
   &:hover {
     background-color: lightyellow;

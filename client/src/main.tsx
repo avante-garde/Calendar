@@ -14,7 +14,13 @@ const rootReducer = combineReducers({
 
 const store = configureStore({
   reducer: rootReducer,
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger),
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActionPaths: ["event"],
+        ignoredPaths: ["events"],
+      },
+    }).concat(logger),
 });
 
 const AppContainer = styled(App)`
@@ -22,11 +28,11 @@ const AppContainer = styled(App)`
 `;
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <Provider store={store}>
-      <AppContainer />
-    </Provider>
-  </StrictMode>,
+  // <StrictMode>
+  <Provider store={store}>
+    <AppContainer />
+  </Provider>,
+  // </StrictMode>,
 );
 
 type AppStore = typeof store.getState;

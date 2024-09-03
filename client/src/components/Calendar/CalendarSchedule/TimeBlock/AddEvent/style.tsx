@@ -38,7 +38,7 @@ const DialogDragHandleIconWrapper = styled.div`
   padding: 8px;
 
   &:hover {
-    background-color: rgb(218,220,224);
+    background-color: rgb(218, 220, 224);
     border-radius: 20px;
   }
 `;
@@ -53,7 +53,7 @@ const DialogExitIconWrapper = styled.div`
   padding: 8px;
 
   &:hover {
-    background-color: rgb(218,220,224);
+    background-color: rgb(218, 220, 224);
     border-radius: 20px;
   }
 `;

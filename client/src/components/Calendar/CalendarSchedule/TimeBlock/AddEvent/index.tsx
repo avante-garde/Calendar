@@ -2,7 +2,6 @@ import {
   ChangeEvent,
   Dispatch,
   FormEvent,
-  MouseEventHandler,
   SetStateAction,
   useCallback,
   useEffect,
@@ -81,40 +80,83 @@ const AddEvent = (props: AddEventProps) => {
   const [eventDescription, setEventDescription] = useState<string>("");
 
   useEffect(() => {
-    if (currentDayAddEvent && currentStartTimeSelected && currentEndTimeSelected) {
+    if (
+      currentDayAddEvent &&
+      currentStartTimeSelected &&
+      currentEndTimeSelected
+    ) {
       setHourAndMinute(currentDayAddEvent);
     }
   }, [currentDayAddEvent, currentStartTimeSelected, currentEndTimeSelected]);
 
-  const setHourAndMinute = useCallback((currDateSelected: ICurrentWeekDate) => {
-    if (currentStartTimeSelected && currentEndTimeSelected) {
-      const startDate = new Date(currDateSelected.date);
-      const startDateColonIndex = currentStartTimeSelected.indexOf(':');
-      const startDateAnteMeridianIndex = currentStartTimeSelected.indexOf('A');
-      const startDatePostMeridiumIndex = currentStartTimeSelected.indexOf('P');
-      const startDateMeridianIndex = startDateAnteMeridianIndex === -1 ? startDatePostMeridiumIndex : startDateAnteMeridianIndex;
+  const setHourAndMinute = useCallback(
+    (currDateSelected: ICurrentWeekDate) => {
+      if (currentStartTimeSelected && currentEndTimeSelected) {
+        const startDate = new Date(currDateSelected.date);
+        const startDateColonIndex = currentStartTimeSelected.indexOf(":");
+        const startDateAnteMeridianIndex =
+          currentStartTimeSelected.indexOf("A");
+        const startDatePostMeridiumIndex =
+          currentStartTimeSelected.indexOf("P");
+        const startDateMeridianIndex =
+          startDateAnteMeridianIndex === -1
+            ? startDatePostMeridiumIndex
+            : startDateAnteMeridianIndex;
 
-      const startHour = currentStartTimeSelected.substring(0, startDateColonIndex);
-      const startMinute = currentStartTimeSelected.substring(startDateColonIndex + 1, startDateMeridianIndex);
-      startDate.setHours(Number(startHour));
-      startDate.setMinutes(Number(startMinute));
+        const currStartHour = currentStartTimeSelected.substring(
+          0,
+          startDateColonIndex,
+        );
+        const startHourMidnightToNoon =
+          currStartHour === "12" && startDateAnteMeridianIndex !== -1
+            ? "00"
+            : currStartHour;
+        const startHour =
+          startHourMidnightToNoon > "12" && startDatePostMeridiumIndex >= 0
+            ? (Number(currStartHour) + 12).toString()
+            : startHourMidnightToNoon;
+        const startMinute = currentStartTimeSelected.substring(
+          startDateColonIndex + 1,
+          startDateMeridianIndex,
+        );
+        startDate.setHours(Number(startHour));
+        startDate.setMinutes(Number(startMinute));
 
-      currDateSelected.startDate = startDate;
+        currDateSelected.startDate = startDate;
 
-      const endDate = new Date(currDateSelected.date);
-      const endDateColonIndex = currentEndTimeSelected.indexOf(':');
-      const endDateAnteMeridianIndex = currentEndTimeSelected.indexOf('A');
-      const endDatePostMeridiumIndex = currentEndTimeSelected.indexOf('P');
-      const endDateMeridianIndex = endDateAnteMeridianIndex === -1 ? endDatePostMeridiumIndex : endDateAnteMeridianIndex;
+        const endDate = new Date(currDateSelected.date);
+        const endDateColonIndex = currentEndTimeSelected.indexOf(":");
+        const endDateAnteMeridianIndex = currentEndTimeSelected.indexOf("A");
+        const endDatePostMeridiumIndex = currentEndTimeSelected.indexOf("P");
+        const endDateMeridianIndex =
+          endDateAnteMeridianIndex === -1
+            ? endDatePostMeridiumIndex
+            : endDateAnteMeridianIndex;
 
-      const endHour = currentEndTimeSelected.substring(0, endDateColonIndex);
-      const endMinute = currentEndTimeSelected.substring(endDateColonIndex + 1, endDateMeridianIndex);
-      endDate.setHours(Number(endHour));
-      endDate.setMinutes(Number(endMinute));
+        const currEndHour = currentEndTimeSelected.substring(
+          0,
+          endDateColonIndex,
+        );
+        const endHourMidnightToNoon =
+          currEndHour === "12" && endDateAnteMeridianIndex !== -1
+            ? "00"
+            : currEndHour;
+        const endHour =
+          endHourMidnightToNoon > "12" && endDatePostMeridiumIndex >= 0
+            ? (Number(currEndHour) + 12).toString()
+            : endHourMidnightToNoon;
+        const endMinute = currentEndTimeSelected.substring(
+          endDateColonIndex + 1,
+          endDateMeridianIndex,
+        );
+        endDate.setHours(Number(endHour));
+        endDate.setMinutes(Number(endMinute));
 
-      currDateSelected.endDate = endDate;
-    }
-  }, [currentStartTimeSelected, currentEndTimeSelected, currentDayAddEvent]);
+        currDateSelected.endDate = endDate;
+      }
+    },
+    [currentStartTimeSelected, currentEndTimeSelected, currentDayAddEvent],
+  );
 
   const handleEventTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
     setEventTitle(event.target.value);
@@ -138,7 +180,13 @@ const AddEvent = (props: AddEventProps) => {
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
 
-      if (currentDayAddEvent && currentStartTimeSelected && currentEndTimeSelected && currentDayAddEvent.startDate && currentDayAddEvent.endDate) {
+      if (
+        currentDayAddEvent &&
+        currentStartTimeSelected &&
+        currentEndTimeSelected &&
+        currentDayAddEvent.startDate &&
+        currentDayAddEvent.endDate
+      ) {
         const event: TimeBlockEvent = {
           currEventDayOfWeek: currentDayAddEvent.name,
           currEventMonth: months[currentDayAddEvent.date.getMonth()],

@@ -1,4 +1,11 @@
-import { MouseEvent, RefObject, useCallback, useEffect, useRef, useState } from "react";
+import {
+  MouseEvent,
+  RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   TimeBlockDay,
   TimeBlockDaySeven,
@@ -12,7 +19,12 @@ import AddEvent, { TimeBlockEvent } from "./AddEvent";
 import { dayNames, months, timeSlots } from "../../../../constants";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../../main";
-import { fetchEvents } from "../../../../store/eventsReducer";
+import {
+  EventModel,
+  EventsIntersectionType,
+  EventsUnionType,
+  fetchEvents,
+} from "../../../../store/eventsReducer";
 
 interface TimeBlockProps {
   calendarScheduleWrapperRef: RefObject<HTMLDivElement>;
@@ -21,9 +33,7 @@ interface TimeBlockProps {
 
 const TimeBlock = (props: TimeBlockProps) => {
   const { calendarScheduleWrapperRef, currentWeekDates } = props;
-  const timeBlockEvent = useSelector<RootState, TimeBlockEvent[]>(
-    (state) => state.events,
-  );
+  const timeBlockEvent = useSelector<RootState, any>((state) => state.events);
   const timeBlockRefSun = useRef<HTMLDivElement>(null);
   const timeBlockRefMon = useRef<HTMLDivElement>(null);
   const timeBlockRefTue = useRef<HTMLDivElement>(null);
@@ -53,60 +63,205 @@ const TimeBlock = (props: TimeBlockProps) => {
     TimeBlockEvent[]
   >([]);
   const [isEventDialogOpen, setIsEventDialogOpen] = useState<boolean>(false);
-  const [currentDayAddEvent, setCurrentDayAddEvent] = useState<
-    ICurrentWeekDate
-  >();
-  const [currentStartTimeSelected, setCurrentStartTimeSelected] = useState<string>();
-  const [currentEndTimeSelected, setCurrentEndTimeSelected] = useState<string>();
+  const [currentDayAddEvent, setCurrentDayAddEvent] =
+    useState<ICurrentWeekDate>();
+  const [currentStartTimeSelected, setCurrentStartTimeSelected] =
+    useState<string>();
+  const [currentEndTimeSelected, setCurrentEndTimeSelected] =
+    useState<string>();
   const [left, setLeft] = useState<number>(0);
   const [top, setTop] = useState<number>(0);
   const dispatch = useDispatch<AppDispatch>();
+  const [isFetching, setIsFetching] = useState<boolean>(false);
 
   useEffect(() => {
-    // TODO: Using startDate and endDate from GET request, modify the event state to persist UI events.
     dispatch(fetchEvents());
+    setIsFetching(true);
   }, []);
 
   useEffect(() => {
-    if (currentDayAddEvent && timeBlockEvent.length > 0) {
+    if (
+      calendarScheduleWrapperRef.current &&
+      isFetching &&
+      timeBlockEvent.length > 0
+    ) {
+      handleAfterFetchEvent();
+    }
+  }, [isFetching, calendarScheduleWrapperRef.current, timeBlockEvent]);
+
+  useEffect(() => {
+    if (currentDayAddEvent && !isFetching && timeBlockEvent.length > 0) {
       handleAfterAddEvent();
     }
-  }, [currentDayAddEvent, timeBlockEvent]);
+  }, [currentDayAddEvent, isFetching, timeBlockEvent]);
+
+  const handleAfterFetchEvent = useCallback(() => {
+    if (
+      calendarScheduleWrapperRef.current &&
+      isFetching &&
+      timeBlockEvent.length > 0
+    ) {
+      setIsFetching(false);
+      timeBlockEvent.forEach((event: any) => {
+        const startDate = new Date(event.startDate);
+        const endDate = new Date(event.endDate);
+
+        const currEventDayOfWeek = dayNames[startDate.getDay()];
+        const currEventMonth = months[startDate.getMonth()];
+        const currEventDayNumber = startDate.getDate();
+        const currEventYear = startDate.getFullYear();
+
+        const currStartTimeAmOrPm =
+          startDate.getHours() >= 0 && startDate.getHours() < 12 ? "AM" : "PM";
+        const currStartMinutes =
+          startDate.getMinutes() === 0 ? "00" : startDate.getMinutes();
+        const currStartHours =
+          startDate.getHours() === 0 ? "12" : startDate.getHours() % 12;
+        const currStartTime = `${currStartHours}:${currStartMinutes}${currStartTimeAmOrPm}`;
+
+        const currEndTimeAmOrPm =
+          endDate.getHours() >= 0 && endDate.getHours() < 12 ? "AM" : "PM";
+        const currEndMinutes =
+          endDate.getMinutes() === 0 ? "00" : endDate.getMinutes();
+        const currEndHours =
+          endDate.getHours() === 0 ? "12" : endDate.getHours() % 12;
+        const currEndTime = `${currEndHours}:${currEndMinutes}${currEndTimeAmOrPm}`;
+
+        const timeSlotIndex = timeSlots.indexOf(currStartTime);
+        const currEvent: TimeBlockEvent = {
+          currEventDayOfWeek,
+          currEventMonth,
+          currEventDayNumber,
+          currEventYear,
+          startTime: currStartTime,
+          endTime: currEndTime,
+          startDate,
+          endDate,
+          eventTitle: event.title,
+          eventGuests: event.guests,
+          eventLocation: event.location,
+          eventDescription: event.description,
+          yCoordinate:
+            (timeSlotIndex / timeSlots.length) *
+            calendarScheduleWrapperRef.current!.clientHeight,
+        };
+        switch (currEventDayOfWeek) {
+          case "Sun":
+            setTimeBlockEventsSun((currEvents) => [...currEvents, currEvent]);
+            break;
+          case "Mon":
+            setTimeBlockEventsMon((currEvents) => [...currEvents, currEvent]);
+            break;
+          case "Tue":
+            setTimeBlockEventsTue((currEvents) => [...currEvents, currEvent]);
+            break;
+          case "Wed":
+            setTimeBlockEventsWed((currEvents) => [...currEvents, currEvent]);
+            break;
+          case "Thu":
+            setTimeBlockEventsThu((currEvents) => [...currEvents, currEvent]);
+            break;
+          case "Fri":
+            setTimeBlockEventsFri((currEvents) => [...currEvents, currEvent]);
+            break;
+          case "Sat":
+            setTimeBlockEventsSat((currEvents) => [...currEvents, currEvent]);
+            break;
+        }
+      });
+    }
+  }, [
+    calendarScheduleWrapperRef.current,
+    isFetching,
+    timeBlockEvent,
+    setTimeBlockEventsSun,
+    setTimeBlockEventsMon,
+    setTimeBlockEventsTue,
+    setTimeBlockEventsWed,
+    setTimeBlockEventsThu,
+    setTimeBlockEventsFri,
+    setTimeBlockEventsSat,
+  ]);
 
   const handleAfterAddEvent = useCallback(() => {
-    if (currentDayAddEvent) {
-      switch(currentDayAddEvent.name) {
+    if (currentDayAddEvent && timeBlockEvent.length > 0) {
+      switch (currentDayAddEvent.name) {
         case "Sun":
-          const sundayEvents = timeBlockEvent.filter((event) => event.currEventDayOfWeek === "Sun")
-          setTimeBlockEventsSun(sundayEvents);
+          const sundayEvents: any = timeBlockEvent.filter(
+            (event: any) => event.currEventDayOfWeek === "Sun",
+          );
+          setTimeBlockEventsSun((currEvents) => [
+            ...currEvents,
+            ...sundayEvents,
+          ]);
           break;
         case "Mon":
-          const mondayEvents = timeBlockEvent.filter((event) => event.currEventDayOfWeek === "Mon")
-          setTimeBlockEventsMon(mondayEvents);
+          const mondayEvents: any = timeBlockEvent.filter(
+            (event: any) => event.currEventDayOfWeek === "Mon",
+          );
+          setTimeBlockEventsMon((currEvents) => [
+            ...currEvents,
+            ...mondayEvents,
+          ]);
           break;
         case "Tue":
-          const tuesdayEvents = timeBlockEvent.filter((event) => event.currEventDayOfWeek === "Tue")
-          setTimeBlockEventsTue(tuesdayEvents);
+          const tuesdayEvents: any = timeBlockEvent.filter(
+            (event: any) => event.currEventDayOfWeek === "Tue",
+          );
+          setTimeBlockEventsTue((currEvents) => [
+            ...currEvents,
+            ...tuesdayEvents,
+          ]);
           break;
         case "Wed":
-          const wednesdayEvents = timeBlockEvent.filter((event) => event.currEventDayOfWeek === "Wed")
-          setTimeBlockEventsWed(wednesdayEvents);
+          const wednesdayEvents: any = timeBlockEvent.filter(
+            (event: any) => event.currEventDayOfWeek === "Wed",
+          );
+          setTimeBlockEventsWed((currEvents) => [
+            ...currEvents,
+            ...wednesdayEvents,
+          ]);
           break;
         case "Thu":
-          const thursdayEvents = timeBlockEvent.filter((event) => event.currEventDayOfWeek === "Thu")
-          setTimeBlockEventsThu(thursdayEvents);
+          const thursdayEvents: any = timeBlockEvent.filter(
+            (event: any) => event.currEventDayOfWeek === "Thu",
+          );
+          setTimeBlockEventsThu((currEvents) => [
+            ...currEvents,
+            ...thursdayEvents,
+          ]);
           break;
         case "Fri":
-          const fridayEvents = timeBlockEvent.filter((event) => event.currEventDayOfWeek === "Fri")
-          setTimeBlockEventsFri(fridayEvents);
+          const fridayEvents: any = timeBlockEvent.filter(
+            (event: any) => event.currEventDayOfWeek === "Fri",
+          );
+          setTimeBlockEventsFri((currEvents) => [
+            ...currEvents,
+            ...fridayEvents,
+          ]);
           break;
         case "Sat":
-          const saturdayEvents = timeBlockEvent.filter((event) => event.currEventDayOfWeek === "Sat")
-          setTimeBlockEventsSat(saturdayEvents);
+          const saturdayEvents: any = timeBlockEvent.filter(
+            (event: any) => event.currEventDayOfWeek === "Sat",
+          );
+          setTimeBlockEventsSat((currEvents) => [
+            ...currEvents,
+            ...saturdayEvents,
+          ]);
           break;
       }
     }
-  }, [currentDayAddEvent, timeBlockEvent, setTimeBlockEventsSun]);
+  }, [
+    currentDayAddEvent,
+    timeBlockEvent,
+    setTimeBlockEventsSun,
+    setTimeBlockEventsMon,
+    setTimeBlockEventsTue,
+    setTimeBlockEventsWed,
+    setTimeBlockEventsThu,
+    setTimeBlockEventsFri,
+    setTimeBlockEventsSat,
+  ]);
 
   const handleAddEvent = useCallback(
     (event: MouseEvent, currentRefDay: RefObject<HTMLDivElement>) => {
@@ -171,8 +326,8 @@ const TimeBlock = (props: TimeBlockProps) => {
   );
 
   {
-    /** 
-     * TODO: 
+    /**
+     * TODO:
      * Modify the left and positions so that it can be viewed directly to the side
      * of the AddEventBubble. Each of the days will have a different left position.
      */
@@ -184,8 +339,7 @@ const TimeBlock = (props: TimeBlockProps) => {
         ref={timeBlockRefSun}
         onClick={(e) => handleAddEvent(e, timeBlockRefSun)}
       >
-        {
-          (currentDayAddEvent?.name === "Sun" && isEventDialogOpen) &&
+        {currentDayAddEvent?.name === "Sun" && isEventDialogOpen && (
           <AddEventBubble
             zIndex={1}
             top={top}
@@ -193,9 +347,8 @@ const TimeBlock = (props: TimeBlockProps) => {
               e.stopPropagation();
             }}
           />
-        }
-        {
-          (currentDayAddEvent?.name === "Sun" && isEventDialogOpen) && (
+        )}
+        {currentDayAddEvent?.name === "Sun" && isEventDialogOpen && (
           <AddEvent
             currentDayAddEvent={currentDayAddEvent}
             currentStartTimeSelected={currentStartTimeSelected}
@@ -207,46 +360,53 @@ const TimeBlock = (props: TimeBlockProps) => {
         )}
         {/** TODO: Don't hardcore the array index values. */}
         {timeBlockEventsSun.map((currDayEvent, index) => {
-          if (currDayEvent.currEventDayNumber === currentWeekDates[0].date.getDate() &&
-              currDayEvent.currEventDayOfWeek === dayNames[currentWeekDates[0].date.getDay()] &&
-              currDayEvent.currEventMonth === months[currentWeekDates[0].date.getMonth()] &&
-              currDayEvent.currEventYear === currentWeekDates[0].date.getFullYear()
+          if (
+            currDayEvent.currEventDayNumber ===
+              currentWeekDates[0].date.getDate() &&
+            currDayEvent.currEventDayOfWeek ===
+              dayNames[currentWeekDates[0].date.getDay()] &&
+            currDayEvent.currEventMonth ===
+              months[currentWeekDates[0].date.getMonth()] &&
+            currDayEvent.currEventYear ===
+              currentWeekDates[0].date.getFullYear()
           ) {
-          return (
-          <AddEventBubble
-            id="add-event-bubble"
-            key={`add-event-bubble-${index}`}
-            top={currDayEvent.yCoordinate}
-            onClick={(e: MouseEvent) => {
-              e.stopPropagation();
-              // Add state change to display a preview bubble of the event
-            }}
-          >
-            <AddEventBubbleTitle>
-              {currDayEvent.eventTitle}
-            </AddEventBubbleTitle>
-            <AddEventBubbleTimes>
-              {currDayEvent.startTime} - {currDayEvent.endTime}
-            </AddEventBubbleTimes>
-          </AddEventBubble>
-        )}})}
+            return (
+              <AddEventBubble
+                id="add-event-bubble"
+                key={`add-event-bubble-${index}`}
+                top={currDayEvent.yCoordinate}
+                onClick={(e: MouseEvent) => {
+                  e.stopPropagation();
+                  console.log("clicked Sunday");
+                  // Add state change to display a preview bubble of the event
+                }}
+              >
+                <AddEventBubbleTitle>
+                  {currDayEvent.eventTitle}
+                </AddEventBubbleTitle>
+                <AddEventBubbleTimes>
+                  {currDayEvent.startTime} - {currDayEvent.endTime}
+                </AddEventBubbleTimes>
+              </AddEventBubble>
+            );
+          }
+        })}
       </TimeBlockDay>
       <TimeBlockDay
         id="time-block-day-mon"
         ref={timeBlockRefMon}
         onClick={(e) => handleAddEvent(e, timeBlockRefMon)}
       >
-        {
-          (currentDayAddEvent?.name === "Mon" && isEventDialogOpen) &&
-          <AddEventBubble 
+        {currentDayAddEvent?.name === "Mon" && isEventDialogOpen && (
+          <AddEventBubble
+            zIndex={1}
             top={top}
             onClick={(e: MouseEvent) => {
               e.stopPropagation();
             }}
           />
-        }
-        {
-          (currentDayAddEvent?.name === "Mon" && isEventDialogOpen) && (
+        )}
+        {currentDayAddEvent?.name === "Mon" && isEventDialogOpen && (
           <AddEvent
             currentDayAddEvent={currentDayAddEvent}
             currentStartTimeSelected={currentStartTimeSelected}
@@ -257,44 +417,50 @@ const TimeBlock = (props: TimeBlockProps) => {
           />
         )}
         {timeBlockEventsMon.map((currDayEvent, index) => {
-          if (currDayEvent.currEventDayNumber === currentWeekDates[1].date.getDate() &&
-              currDayEvent.currEventDayOfWeek === dayNames[currentWeekDates[1].date.getDay()] &&
-              currDayEvent.currEventMonth === months[currentWeekDates[1].date.getMonth()] &&
-              currDayEvent.currEventYear === currentWeekDates[1].date.getFullYear()
+          if (
+            currDayEvent.currEventDayNumber ===
+              currentWeekDates[1].date.getDate() &&
+            currDayEvent.currEventDayOfWeek ===
+              dayNames[currentWeekDates[1].date.getDay()] &&
+            currDayEvent.currEventMonth ===
+              months[currentWeekDates[1].date.getMonth()] &&
+            currDayEvent.currEventYear ===
+              currentWeekDates[1].date.getFullYear()
           ) {
             return (
-          <AddEventBubble
-            key={`add-event-bubble-${index}`}
-            top={currDayEvent.yCoordinate}
-            onClick={(e: MouseEvent) => {
-              e.stopPropagation();
-            }}
-          >
-            <AddEventBubbleTitle>
-              {currDayEvent.eventTitle}
-            </AddEventBubbleTitle>
-            <AddEventBubbleTimes>
-              {currDayEvent.startTime} - {currDayEvent.endTime}
-            </AddEventBubbleTimes>
-          </AddEventBubble>
-        )}})}
+              <AddEventBubble
+                key={`add-event-bubble-${index}`}
+                top={currDayEvent.yCoordinate}
+                onClick={(e: MouseEvent) => {
+                  e.stopPropagation();
+                }}
+              >
+                <AddEventBubbleTitle>
+                  {currDayEvent.eventTitle}
+                </AddEventBubbleTitle>
+                <AddEventBubbleTimes>
+                  {currDayEvent.startTime} - {currDayEvent.endTime}
+                </AddEventBubbleTimes>
+              </AddEventBubble>
+            );
+          }
+        })}
       </TimeBlockDay>
       <TimeBlockDay
         id="time-block-day-tue"
         ref={timeBlockRefTue}
         onClick={(e) => handleAddEvent(e, timeBlockRefTue)}
       >
-        {
-          (currentDayAddEvent?.name === "Tue" && isEventDialogOpen) &&
-          <AddEventBubble 
+        {currentDayAddEvent?.name === "Tue" && isEventDialogOpen && (
+          <AddEventBubble
+            zIndex={1}
             top={top}
             onClick={(e: MouseEvent) => {
               e.stopPropagation();
             }}
           />
-        }
-        {
-          (currentDayAddEvent?.name === "Tue" && isEventDialogOpen) && (
+        )}
+        {currentDayAddEvent?.name === "Tue" && isEventDialogOpen && (
           <AddEvent
             currentDayAddEvent={currentDayAddEvent}
             currentStartTimeSelected={currentStartTimeSelected}
@@ -305,44 +471,50 @@ const TimeBlock = (props: TimeBlockProps) => {
           />
         )}
         {timeBlockEventsTue.map((currDayEvent, index) => {
-          if (currDayEvent.currEventDayNumber === currentWeekDates[2].date.getDate() &&
-              currDayEvent.currEventDayOfWeek === dayNames[currentWeekDates[2].date.getDay()] &&
-              currDayEvent.currEventMonth === months[currentWeekDates[2].date.getMonth()] &&
-              currDayEvent.currEventYear === currentWeekDates[2].date.getFullYear()
+          if (
+            currDayEvent.currEventDayNumber ===
+              currentWeekDates[2].date.getDate() &&
+            currDayEvent.currEventDayOfWeek ===
+              dayNames[currentWeekDates[2].date.getDay()] &&
+            currDayEvent.currEventMonth ===
+              months[currentWeekDates[2].date.getMonth()] &&
+            currDayEvent.currEventYear ===
+              currentWeekDates[2].date.getFullYear()
           ) {
             return (
-          <AddEventBubble
-            key={`add-event-bubble-${index}`}
-            top={currDayEvent.yCoordinate}
-            onClick={(e: MouseEvent) => {
-              e.stopPropagation();
-            }}
-          >
-            <AddEventBubbleTitle>
-              {currDayEvent.eventTitle}
-            </AddEventBubbleTitle>
-            <AddEventBubbleTimes>
-              {currDayEvent.startTime} - {currDayEvent.endTime}
-            </AddEventBubbleTimes>
-          </AddEventBubble>
-        )}})}
+              <AddEventBubble
+                key={`add-event-bubble-${index}`}
+                top={currDayEvent.yCoordinate}
+                onClick={(e: MouseEvent) => {
+                  e.stopPropagation();
+                }}
+              >
+                <AddEventBubbleTitle>
+                  {currDayEvent.eventTitle}
+                </AddEventBubbleTitle>
+                <AddEventBubbleTimes>
+                  {currDayEvent.startTime} - {currDayEvent.endTime}
+                </AddEventBubbleTimes>
+              </AddEventBubble>
+            );
+          }
+        })}
       </TimeBlockDay>
       <TimeBlockDay
         id="time-block-day-wed"
         ref={timeBlockRefWed}
         onClick={(e) => handleAddEvent(e, timeBlockRefWed)}
       >
-        {
-          (currentDayAddEvent?.name === "Wed" && isEventDialogOpen) &&
-          <AddEventBubble 
+        {currentDayAddEvent?.name === "Wed" && isEventDialogOpen && (
+          <AddEventBubble
+            zIndex={1}
             top={top}
             onClick={(e: MouseEvent) => {
               e.stopPropagation();
             }}
           />
-        }
-        {
-          (currentDayAddEvent?.name === "Wed" && isEventDialogOpen)  && (
+        )}
+        {currentDayAddEvent?.name === "Wed" && isEventDialogOpen && (
           <AddEvent
             currentDayAddEvent={currentDayAddEvent}
             currentStartTimeSelected={currentStartTimeSelected}
@@ -353,44 +525,50 @@ const TimeBlock = (props: TimeBlockProps) => {
           />
         )}
         {timeBlockEventsWed.map((currDayEvent, index) => {
-          if (currDayEvent.currEventDayNumber === currentWeekDates[3].date.getDate() &&
-              currDayEvent.currEventDayOfWeek === dayNames[currentWeekDates[3].date.getDay()] &&
-              currDayEvent.currEventMonth === months[currentWeekDates[3].date.getMonth()] &&
-              currDayEvent.currEventYear === currentWeekDates[3].date.getFullYear()
+          if (
+            currDayEvent.currEventDayNumber ===
+              currentWeekDates[3].date.getDate() &&
+            currDayEvent.currEventDayOfWeek ===
+              dayNames[currentWeekDates[3].date.getDay()] &&
+            currDayEvent.currEventMonth ===
+              months[currentWeekDates[3].date.getMonth()] &&
+            currDayEvent.currEventYear ===
+              currentWeekDates[3].date.getFullYear()
           ) {
             return (
-          <AddEventBubble
-            key={`add-event-bubble-${index}`}
-            top={currDayEvent.yCoordinate}
-            onClick={(e: MouseEvent) => {
-              e.stopPropagation();
-            }}
-          >
-            <AddEventBubbleTitle>
-              {currDayEvent.eventTitle}
-            </AddEventBubbleTitle>
-            <AddEventBubbleTimes>
-              {currDayEvent.startTime} - {currDayEvent.endTime}
-            </AddEventBubbleTimes>
-          </AddEventBubble>
-        )}})}
+              <AddEventBubble
+                key={`add-event-bubble-${index}`}
+                top={currDayEvent.yCoordinate}
+                onClick={(e: MouseEvent) => {
+                  e.stopPropagation();
+                }}
+              >
+                <AddEventBubbleTitle>
+                  {currDayEvent.eventTitle}
+                </AddEventBubbleTitle>
+                <AddEventBubbleTimes>
+                  {currDayEvent.startTime} - {currDayEvent.endTime}
+                </AddEventBubbleTimes>
+              </AddEventBubble>
+            );
+          }
+        })}
       </TimeBlockDay>
       <TimeBlockDay
         id="time-block-day-thu"
         ref={timeBlockRefThu}
         onClick={(e) => handleAddEvent(e, timeBlockRefThu)}
       >
-        {
-          (currentDayAddEvent?.name === "Thu" && isEventDialogOpen) &&
-          <AddEventBubble 
+        {currentDayAddEvent?.name === "Thu" && isEventDialogOpen && (
+          <AddEventBubble
+            zIndex={1}
             top={top}
             onClick={(e: MouseEvent) => {
               e.stopPropagation();
             }}
           />
-        }
-        {
-          (currentDayAddEvent?.name === "Thu" && isEventDialogOpen) && (
+        )}
+        {currentDayAddEvent?.name === "Thu" && isEventDialogOpen && (
           <AddEvent
             currentDayAddEvent={currentDayAddEvent}
             currentStartTimeSelected={currentStartTimeSelected}
@@ -401,44 +579,50 @@ const TimeBlock = (props: TimeBlockProps) => {
           />
         )}
         {timeBlockEventsThu.map((currDayEvent, index) => {
-          if (currDayEvent.currEventDayNumber === currentWeekDates[4].date.getDate() &&
-              currDayEvent.currEventDayOfWeek === dayNames[currentWeekDates[4].date.getDay()] &&
-              currDayEvent.currEventMonth === months[currentWeekDates[4].date.getMonth()] &&
-              currDayEvent.currEventYear === currentWeekDates[4].date.getFullYear()
+          if (
+            currDayEvent.currEventDayNumber ===
+              currentWeekDates[4].date.getDate() &&
+            currDayEvent.currEventDayOfWeek ===
+              dayNames[currentWeekDates[4].date.getDay()] &&
+            currDayEvent.currEventMonth ===
+              months[currentWeekDates[4].date.getMonth()] &&
+            currDayEvent.currEventYear ===
+              currentWeekDates[4].date.getFullYear()
           ) {
             return (
-          <AddEventBubble
-            key={`add-event-bubble-${index}`}
-            top={currDayEvent.yCoordinate}
-            onClick={(e: MouseEvent) => {
-              e.stopPropagation();
-            }}
-          >
-            <AddEventBubbleTitle>
-              {currDayEvent.eventTitle}
-            </AddEventBubbleTitle>
-            <AddEventBubbleTimes>
-              {currDayEvent.startTime} - {currDayEvent.endTime}
-            </AddEventBubbleTimes>
-          </AddEventBubble>
-        )}})}
+              <AddEventBubble
+                key={`add-event-bubble-${index}`}
+                top={currDayEvent.yCoordinate}
+                onClick={(e: MouseEvent) => {
+                  e.stopPropagation();
+                }}
+              >
+                <AddEventBubbleTitle>
+                  {currDayEvent.eventTitle}
+                </AddEventBubbleTitle>
+                <AddEventBubbleTimes>
+                  {currDayEvent.startTime} - {currDayEvent.endTime}
+                </AddEventBubbleTimes>
+              </AddEventBubble>
+            );
+          }
+        })}
       </TimeBlockDay>
       <TimeBlockDay
         id="time-block-day-fri"
         ref={timeBlockRefFri}
         onClick={(e) => handleAddEvent(e, timeBlockRefFri)}
       >
-        {
-          (currentDayAddEvent?.name === "Fri" && isEventDialogOpen) &&
-          <AddEventBubble 
+        {currentDayAddEvent?.name === "Fri" && isEventDialogOpen && (
+          <AddEventBubble
+            zIndex={1}
             top={top}
             onClick={(e: MouseEvent) => {
               e.stopPropagation();
             }}
           />
-        }
-        {
-          (currentDayAddEvent?.name === "Fri" && isEventDialogOpen) && (
+        )}
+        {currentDayAddEvent?.name === "Fri" && isEventDialogOpen && (
           <AddEvent
             currentDayAddEvent={currentDayAddEvent}
             currentStartTimeSelected={currentStartTimeSelected}
@@ -449,44 +633,50 @@ const TimeBlock = (props: TimeBlockProps) => {
           />
         )}
         {timeBlockEventsFri.map((currDayEvent, index) => {
-          if (currDayEvent.currEventDayNumber === currentWeekDates[5].date.getDate() &&
-              currDayEvent.currEventDayOfWeek === dayNames[currentWeekDates[5].date.getDay()] &&
-              currDayEvent.currEventMonth === months[currentWeekDates[5].date.getMonth()] &&
-              currDayEvent.currEventYear === currentWeekDates[5].date.getFullYear()
+          if (
+            currDayEvent.currEventDayNumber ===
+              currentWeekDates[5].date.getDate() &&
+            currDayEvent.currEventDayOfWeek ===
+              dayNames[currentWeekDates[5].date.getDay()] &&
+            currDayEvent.currEventMonth ===
+              months[currentWeekDates[5].date.getMonth()] &&
+            currDayEvent.currEventYear ===
+              currentWeekDates[5].date.getFullYear()
           ) {
             return (
-          <AddEventBubble
-            key={`add-event-bubble-${index}`}
-            top={currDayEvent.yCoordinate}
-            onClick={(e: MouseEvent) => {
-              e.stopPropagation();
-            }}
-          >
-            <AddEventBubbleTitle>
-              {currDayEvent.eventTitle}
-            </AddEventBubbleTitle>
-            <AddEventBubbleTimes>
-              {currDayEvent.startTime} - {currDayEvent.endTime}
-            </AddEventBubbleTimes>
-          </AddEventBubble>
-        )}})}
+              <AddEventBubble
+                key={`add-event-bubble-${index}`}
+                top={currDayEvent.yCoordinate}
+                onClick={(e: MouseEvent) => {
+                  e.stopPropagation();
+                }}
+              >
+                <AddEventBubbleTitle>
+                  {currDayEvent.eventTitle}
+                </AddEventBubbleTitle>
+                <AddEventBubbleTimes>
+                  {currDayEvent.startTime} - {currDayEvent.endTime}
+                </AddEventBubbleTimes>
+              </AddEventBubble>
+            );
+          }
+        })}
       </TimeBlockDay>
       <TimeBlockDaySeven
         id="time-block-day-sat"
         ref={timeBlockRefSat}
         onClick={(e) => handleAddEvent(e, timeBlockRefSat)}
       >
-        {
-          (currentDayAddEvent?.name === "Sat" && isEventDialogOpen) &&
-          <AddEventBubble 
+        {currentDayAddEvent?.name === "Sat" && isEventDialogOpen && (
+          <AddEventBubble
+            zIndex={1}
             top={top}
             onClick={(e: MouseEvent) => {
               e.stopPropagation();
             }}
           />
-        }
-        {
-          (currentDayAddEvent?.name === "Sat" && isEventDialogOpen) && (
+        )}
+        {currentDayAddEvent?.name === "Sat" && isEventDialogOpen && (
           <AddEvent
             currentDayAddEvent={currentDayAddEvent}
             currentStartTimeSelected={currentStartTimeSelected}
@@ -497,27 +687,34 @@ const TimeBlock = (props: TimeBlockProps) => {
           />
         )}
         {timeBlockEventsSat.map((currDayEvent, index) => {
-          if (currDayEvent.currEventDayNumber === currentWeekDates[6].date.getDate() &&
-              currDayEvent.currEventDayOfWeek === dayNames[currentWeekDates[6].date.getDay()] &&
-              currDayEvent.currEventMonth === months[currentWeekDates[6].date.getMonth()] &&
-              currDayEvent.currEventYear === currentWeekDates[6].date.getFullYear()
+          if (
+            currDayEvent.currEventDayNumber ===
+              currentWeekDates[6].date.getDate() &&
+            currDayEvent.currEventDayOfWeek ===
+              dayNames[currentWeekDates[6].date.getDay()] &&
+            currDayEvent.currEventMonth ===
+              months[currentWeekDates[6].date.getMonth()] &&
+            currDayEvent.currEventYear ===
+              currentWeekDates[6].date.getFullYear()
           ) {
-            return  (
-          <AddEventBubble
-            key={`add-event-bubble-${index}`}
-            top={currDayEvent.yCoordinate}
-            onClick={(e: MouseEvent) => {
-              e.stopPropagation();
-            }}
-          >
-            <AddEventBubbleTitle>
-              {currDayEvent.eventTitle}
-            </AddEventBubbleTitle>
-            <AddEventBubbleTimes>
-              {currDayEvent.startTime} - {currDayEvent.endTime}
-            </AddEventBubbleTimes>
-          </AddEventBubble>
-        )}})}
+            return (
+              <AddEventBubble
+                key={`add-event-bubble-${index}`}
+                top={currDayEvent.yCoordinate}
+                onClick={(e: MouseEvent) => {
+                  e.stopPropagation();
+                }}
+              >
+                <AddEventBubbleTitle>
+                  {currDayEvent.eventTitle}
+                </AddEventBubbleTitle>
+                <AddEventBubbleTimes>
+                  {currDayEvent.startTime} - {currDayEvent.endTime}
+                </AddEventBubbleTimes>
+              </AddEventBubble>
+            );
+          }
+        })}
       </TimeBlockDaySeven>
     </TimeBlockWrapper>
   );
