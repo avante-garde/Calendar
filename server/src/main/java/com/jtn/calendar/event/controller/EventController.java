@@ -1,7 +1,6 @@
 package com.jtn.calendar.event.controller;
 
 import java.util.List;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -23,8 +22,9 @@ import com.jtn.calendar.event.service.EventService;
  * responses are sent
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/event")
 @Validated
+@CrossOrigin(origins = "http://localhost:5173")
 public class EventController {
 
   private final EventService eventService;
@@ -40,8 +40,7 @@ public class EventController {
    * 
    * @return List of Event
    */
-  @CrossOrigin(origins = "http://localhost:5173")
-  @GetMapping("/event")
+  @GetMapping("/")
   public ResponseEntity<List<Event>> getAllEvents() {
     return ResponseEntity.ok().body(eventService.getAllEvents());
   }
@@ -54,7 +53,7 @@ public class EventController {
    * @param id - event id
    * @return Event with the given id
    */
-  @GetMapping("/event/{id}")
+  @GetMapping("/{id}")
   public ResponseEntity<Event> getEventById(@PathVariable Integer id) {
     return ResponseEntity.ok().body(eventService.getEventById(id));
   }
@@ -67,7 +66,7 @@ public class EventController {
    * @param event - Request body is an Events entity
    * @return Saved Event entity
    */
-  @PostMapping("/event")
+  @PostMapping("/")
   public ResponseEntity<Event> saveEvent(@RequestBody Event event) {
     return ResponseEntity.ok().body(eventService.saveEvent(event));
   }
@@ -80,7 +79,7 @@ public class EventController {
    * @param event - Event entity to be updated
    * @return Updated Event
    */
-  @PutMapping("/event/")
+  @PutMapping("/")
   public ResponseEntity<Event> updateEvent(@RequestBody Event event) {
     return ResponseEntity.ok().body(eventService.updateEvent(event));
   }
@@ -94,7 +93,7 @@ public class EventController {
    * @return a String message indicating event record has been deleted
    *         successfully
    */
-  @DeleteMapping("/event/{id}")
+  @DeleteMapping("/{id}")
   public ResponseEntity<String> deleteEventById(@PathVariable Integer id) {
     eventService.deleteEventById(id);
     return ResponseEntity.ok().body("Deleted event successfully");

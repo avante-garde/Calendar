@@ -1,13 +1,12 @@
 package com.jtn.calendar.event.model;
 
-import java.sql.Date;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.ZonedDateTime;
 
 /**
  * An entity class represents a table in a relational database
@@ -29,16 +28,66 @@ public class Event {
   @Column(columnDefinition = "VARCHAR(128)")
   private String location;
 
-  @Column(columnDefinition = "ARRAY")
-  private String[] guests;
+  @Column(columnDefinition = "VARCHAR(255)")
+  private String guests;
 
-  @Column(columnDefinition = "DATETIME")
-  private Date startTime;
+  private ZonedDateTime startDate;
 
-  @Column(columnDefinition = "DATETIME")
-  private Date endTime;
+  private ZonedDateTime endDate;
 
-  public Event() {
-  
+  public Integer getId() {
+    return this.id;
+  }
+
+  public void setId(Integer id) {
+    this.id = id;
+  }
+
+  public String getTitle() {
+    return this.title;
+  }
+
+  public void setTitle(String title) {
+    this.title = title;
+  }
+
+  public String getDescription() {
+    return this.description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public String getLocation() {
+    return this.location;
+  }
+
+  public void setLocation(String location) {
+    this.location = location;
+  }
+
+  public String getGuests() {
+    return this.guests;
+  }
+
+  public void setGuests(String guests) {
+    this.guests = guests;
+  }
+
+  public ZonedDateTime getStartDate() {
+    return this.startDate;
+  }
+
+  public void setStartDate(ZonedDateTime startDate) {
+    this.startDate = startDate;
+  }
+
+  public ZonedDateTime getEndDate() {
+    return this.endDate;
+  }
+
+  public void setEndDate(ZonedDateTime endDate) {
+    this.endDate = endDate;
   }
 }
