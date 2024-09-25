@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { ICurrentWeekDate } from "../../App";
+import { CurrentWeekDate } from "../../App";
 import CalendarHeader from "./CalendarHeader";
 import CalendarSchedule from "./CalendarSchedule";
 import {
@@ -10,12 +10,11 @@ import {
 } from "./style";
 
 interface CalendarProps {
-  currentWeekDates: ICurrentWeekDate[];
-  dayNames: string[];
+  currentWeekDates: CurrentWeekDate[];
 }
 
 const Calendar = (props: CalendarProps) => {
-  const { currentWeekDates, dayNames } = props;
+  const { currentWeekDates } = props;
 
   const [coordinateOverflowX, setCoordinateOverflowX] = useState<number>(0);
 
@@ -32,7 +31,6 @@ const Calendar = (props: CalendarProps) => {
         <CalendarHeaderContainer item id="calendar-header-container">
           <CalendarHeader
             currentWeekDates={currentWeekDates}
-            dayNames={dayNames}
             coordinateOverflowX={coordinateOverflowX}
             handleOverflowX={handleOverflowX}
           />

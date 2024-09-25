@@ -43,13 +43,18 @@ const SpacerBetweenTimeZoneAndDays = styled.div`
 `;
 
 const DaysWrapper = styled.div`
-  width: calc(100% - 8px);
+  display: flex;
   position: relative;
-  min-width: 300px;
+  height: 80%;
+  width: calc(100% - 8px);
 `;
 
 const DayNamesWrapper = styled.div`
   display: flex;
+  justify-content: center;
+`;
+
+const DayNamesInnerWrapper = styled.div`
   width: 100%;
 `;
 
@@ -70,6 +75,7 @@ const DayNames = styled.div`
 
 const DayNumberWrapper = styled.div`
   display: flex;
+  justify-content: center;
   height: calc(100% - 30px - 10px);
 `;
 
@@ -112,6 +118,7 @@ export {
   SpacerBetweenTimeZoneAndDays,
   DaysContainer,
   DayNamesWrapper,
+  DayNamesInnerWrapper,
   DaysWrapper,
   DayNames,
   DayNumber,

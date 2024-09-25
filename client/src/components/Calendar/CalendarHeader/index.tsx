@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { ICurrentWeekDate } from "../../../App";
+import { CurrentWeekDate } from "../../../App";
 import {
   CalendarHeaderWrapper,
   DayNames,
@@ -12,17 +12,17 @@ import {
   VerticalLines,
   DayNamesWrapper,
   DayNumber,
+  DayNamesInnerWrapper,
 } from "./style";
 
 interface CalendarHeaderProps {
-  currentWeekDates: ICurrentWeekDate[];
-  dayNames: string[];
+  currentWeekDates: CurrentWeekDate[];
   coordinateOverflowX: number;
   handleOverflowX: (xCoord: number) => void;
 }
 
 const CalendarHeader = (props: CalendarHeaderProps) => {
-  const { currentWeekDates, dayNames, coordinateOverflowX, handleOverflowX } =
+  const { currentWeekDates, coordinateOverflowX, handleOverflowX } =
     props;
   const daysContainerRef = useRef<HTMLDivElement>(null);
 
@@ -41,32 +41,26 @@ const CalendarHeader = (props: CalendarHeaderProps) => {
       <DaysContainer id="days-container" ref={daysContainerRef}>
         <SpacerBetweenTimeZoneAndDays id="spacer-between-time-zone-and-days" />
         <DaysWrapper id="days-wrapper">
-          <DayNamesWrapper id="day-names-wrapper">
-            {dayNames.map((dayName, index) => {
-              return (
+          {currentWeekDates.map((currentWeekDate, index) => (
+            <DayNamesInnerWrapper key={`current-week-date-${index}`}>
+              <DayNamesWrapper id="day-names-wrapper">
                 <DayNames id="day-names" key={`day-names-${index}`}>
-                  {dayName}
+                  {currentWeekDate.name.slice(0, 3)}
                 </DayNames>
-              );
-            })}
-          </DayNamesWrapper>
-          <DayNumberWrapper id="day-number-wrapper">
-            {currentWeekDates.map((currentWeekDate, index) => (
-              <DayNumber id="day-number" key={`day-number-${index}`}>
-                {currentWeekDate.date.getDate()}
-              </DayNumber>
-            ))}
-          </DayNumberWrapper>
-          <VerticalLinesWrapper id="vertical-lines-wrapper">
-            {Array(dayNames.length)
-              .fill(null)
-              .map((_, index) => (
+              </DayNamesWrapper>
+              <DayNumberWrapper id="day-number-wrapper">
+                <DayNumber id="day-number" key={`day-number-${index}`}>
+                  {currentWeekDate.date.getDate()}
+                </DayNumber>
+              </DayNumberWrapper>
+              <VerticalLinesWrapper id="vertical-lines-wrapper">
                 <VerticalLines
                   id="vertical-lines"
                   key={`vertical-lines-${index}`}
                 />
-              ))}
-          </VerticalLinesWrapper>
+              </VerticalLinesWrapper>
+            </DayNamesInnerWrapper>
+          ))}
         </DaysWrapper>
       </DaysContainer>
     </CalendarHeaderWrapper>

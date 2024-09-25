@@ -6,21 +6,16 @@ import styled from "@emotion/styled";
 import logger from "redux-logger";
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
-import eventsReducer from "./store/eventsReducer.tsx";
+import { calendarEventApi } from "./store/services/event.ts";
 
 const rootReducer = combineReducers({
-  events: eventsReducer,
+  [calendarEventApi.reducerPath]: calendarEventApi.reducer,
 });
 
 const store = configureStore({
   reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        ignoredActionPaths: ["event"],
-        ignoredPaths: ["events"],
-      },
-    }).concat(logger),
+    getDefaultMiddleware().concat(calendarEventApi.middleware),
 });
 
 const AppContainer = styled(App)`
@@ -28,11 +23,11 @@ const AppContainer = styled(App)`
 `;
 
 createRoot(document.getElementById("root")!).render(
-  // <StrictMode>
-  <Provider store={store}>
-    <AppContainer />
-  </Provider>,
-  // </StrictMode>,
+  <StrictMode>
+    <Provider store={store}>
+      <AppContainer />
+    </Provider>,
+  </StrictMode>,
 );
 
 type AppStore = typeof store.getState;

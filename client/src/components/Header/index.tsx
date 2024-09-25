@@ -8,11 +8,11 @@ import {
   MonthAndYearTextWrapper,
   RightArrowIcon,
 } from "./style";
-import { IMonth, IYear } from "../../App";
+import { Month, Year } from "../../App";
 
 interface HeaderProps {
-  month: IMonth;
-  year: IYear;
+  month: Month;
+  year: Year;
   onToggleSidebar: () => void;
   onLeftArrowIconClick: () => void;
   onRightArrowIconClick: () => void;

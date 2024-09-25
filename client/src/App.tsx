@@ -12,21 +12,21 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { dayNames, months } from "./constants";
 
-export interface IMonth {
+export interface Month {
   containsTwoMonths: boolean;
   prevMonth?: string;
   currMonth: string;
   nextMonth?: string;
 }
 
-export interface IYear {
+export interface Year {
   containsTwoYears: boolean;
   prevYear?: number;
   currYear: number;
   nextYear?: number;
 }
 
-export interface ICurrentWeekDate {
+export interface CurrentWeekDate {
   name: string;
   date: Date;
   startDate?: Date;
@@ -36,23 +36,26 @@ export interface ICurrentWeekDate {
 function App() {
   // TODO: Refactor and consolidate all of the logic within each functional component for reusability
   const currentDate = new Date();
+  currentDate.setHours(0);
+  currentDate.setMinutes(0);
+  currentDate.setSeconds(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [currentWeekStartDate, setCurrentWeekStartDate] = useState<Date>(
     getFirstDayOfWeek(currentDate),
   );
-  const [month, setMonth] = useState<IMonth>({
+  const [month, setMonth] = useState<Month>({
     containsTwoMonths: false,
     prevMonth: "",
     currMonth: months[currentDate.getMonth()],
     nextMonth: "",
   });
-  const [year, setYear] = useState<IYear>({
+  const [year, setYear] = useState<Year>({
     containsTwoYears: false,
     prevYear: 0,
     currYear: currentDate.getFullYear(),
     nextYear: 0,
   });
-  const currentWeekDates = useMemo<ICurrentWeekDate[]>(
+  const currentWeekDates = useMemo<CurrentWeekDate[]>(
     () => getDatesForWeek(currentWeekStartDate),
     [currentWeekStartDate],
   );
@@ -66,6 +69,7 @@ function App() {
     const dayNumbersOfCurrentWeek = [];
     const totalDaysInWeek = 7;
     const prevDate = new Date(weekStartDate);
+
     for (let weekIndex = 0; weekIndex < totalDaysInWeek; weekIndex++) {
       const nextDate = new Date(weekStartDate);
       nextDate.setDate(prevDate.getDate() + weekIndex);
@@ -151,7 +155,7 @@ function App() {
               <Sidebar />
             </SidebarContainer>
           )}
-          <Calendar currentWeekDates={currentWeekDates} dayNames={dayNames} />
+          <Calendar currentWeekDates={currentWeekDates} />
         </ContentContainer>
       </Layout>
     </LocalizationProvider>

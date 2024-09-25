@@ -5,6 +5,10 @@ interface AddEventBubbleProps {
   top: number | undefined;
 }
 
+interface TimeBlockDayProps {
+  index: number;
+}
+
 const TimeBlockWrapper = styled.div`
   display: flex;
   width: 100%;
@@ -16,15 +20,7 @@ const TimeBlockDay = styled.div`
   width: calc(100% / 7);
   min-width: 42px;
   padding-right: 12px;
-  border-right: 1px solid rgb(241, 243, 244);
-`;
-
-const TimeBlockDaySeven = styled.div`
-  position: relative;
-  height: calc(50px * 24);
-  width: calc(100% / 7);
-  min-width: 42px;
-  padding-right: 12px;
+  border-right: ${(props: TimeBlockDayProps) => (props.index < 6 ? '1px solid rgb(241, 243, 244)' : 'none')};
 `;
 
 const AddEventBubble = styled.div`
@@ -44,6 +40,7 @@ const AddEventBubble = styled.div`
   &:hover {
     background-color: lightyellow;
     cursor: pointer;
+    z-index: 2;
   }
 `;
 
@@ -58,7 +55,6 @@ const AddEventBubbleTimes = styled.div`
 export {
   TimeBlockWrapper,
   TimeBlockDay,
-  TimeBlockDaySeven,
   AddEventBubble,
   AddEventBubbleTitle,
   AddEventBubbleTimes,

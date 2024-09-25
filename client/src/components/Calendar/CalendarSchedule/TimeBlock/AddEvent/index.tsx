@@ -4,7 +4,6 @@ import {
   FormEvent,
   SetStateAction,
   useCallback,
-  useEffect,
   useRef,
   useState,
 } from "react";
@@ -30,37 +29,22 @@ import {
   DialogTabsWrapper,
   SaveButton,
   SaveButtonWrapper,
+  SelectTime,
+  SelectTimeOptions,
 } from "./style";
-import { ICurrentWeekDate } from "../../../../../App";
-import { months } from "../../../../../constants";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "../../../../../main";
-import { postEvent } from "../../../../../store/eventsReducer";
+import { CurrentWeekDate } from "../../../../../App";
+import { months, timeSlots } from "../../../../../constants";
+import { TimeBlockEvent } from "..";
+import { useAddCalendarEventMutation } from "../../../../../store/services/event";
 
 interface AddEventProps {
-  currentDayAddEvent: ICurrentWeekDate | undefined;
-  currentStartTimeSelected: string | undefined;
-  currentEndTimeSelected: string | undefined;
+  currentDayAddEvent: CurrentWeekDate;
+  currentStartTimeSelected: string;
+  currentEndTimeSelected: string;
   left: number;
   top: number;
   setIsEventDialogOpen: Dispatch<SetStateAction<boolean>>;
-}
-
-export interface TimeBlockEvent {
-  currEventDayOfWeek: string;
-  currEventMonth: string;
-  currEventDayNumber: number;
-  currEventYear: number;
-  startTime: string | undefined;
-  endTime: string | undefined;
-  startDate: Date;
-  endDate: Date;
-  eventTitle: string;
-  eventGuests: string;
-  eventLocation: string;
-  eventDescription: string;
-  xCoordinate?: number;
-  yCoordinate: number;
+  timeBlockEvents: any[][]; // TODO: Change typing
 }
 
 const AddEvent = (props: AddEventProps) => {
@@ -71,92 +55,18 @@ const AddEvent = (props: AddEventProps) => {
     left,
     top,
     setIsEventDialogOpen,
+    timeBlockEvents,
   } = props;
-  const dispatchToStore = useDispatch<AppDispatch>();
+
+  const [
+    addCalendarEvent,
+  ] = useAddCalendarEventMutation();
+
   const addEventDialogRef = useRef<HTMLFormElement>(null);
   const [eventTitle, setEventTitle] = useState<string>("");
   const [eventGuests, setEventGuests] = useState<string>("");
   const [eventLocation, setEventLocation] = useState<string>("");
   const [eventDescription, setEventDescription] = useState<string>("");
-
-  useEffect(() => {
-    if (
-      currentDayAddEvent &&
-      currentStartTimeSelected &&
-      currentEndTimeSelected
-    ) {
-      setHourAndMinute(currentDayAddEvent);
-    }
-  }, [currentDayAddEvent, currentStartTimeSelected, currentEndTimeSelected]);
-
-  const setHourAndMinute = useCallback(
-    (currDateSelected: ICurrentWeekDate) => {
-      if (currentStartTimeSelected && currentEndTimeSelected) {
-        const startDate = new Date(currDateSelected.date);
-        const startDateColonIndex = currentStartTimeSelected.indexOf(":");
-        const startDateAnteMeridianIndex =
-          currentStartTimeSelected.indexOf("A");
-        const startDatePostMeridiumIndex =
-          currentStartTimeSelected.indexOf("P");
-        const startDateMeridianIndex =
-          startDateAnteMeridianIndex === -1
-            ? startDatePostMeridiumIndex
-            : startDateAnteMeridianIndex;
-
-        const currStartHour = currentStartTimeSelected.substring(
-          0,
-          startDateColonIndex,
-        );
-        const startHourMidnightToNoon =
-          currStartHour === "12" && startDateAnteMeridianIndex !== -1
-            ? "00"
-            : currStartHour;
-        const startHour =
-          startHourMidnightToNoon > "12" && startDatePostMeridiumIndex >= 0
-            ? (Number(currStartHour) + 12).toString()
-            : startHourMidnightToNoon;
-        const startMinute = currentStartTimeSelected.substring(
-          startDateColonIndex + 1,
-          startDateMeridianIndex,
-        );
-        startDate.setHours(Number(startHour));
-        startDate.setMinutes(Number(startMinute));
-
-        currDateSelected.startDate = startDate;
-
-        const endDate = new Date(currDateSelected.date);
-        const endDateColonIndex = currentEndTimeSelected.indexOf(":");
-        const endDateAnteMeridianIndex = currentEndTimeSelected.indexOf("A");
-        const endDatePostMeridiumIndex = currentEndTimeSelected.indexOf("P");
-        const endDateMeridianIndex =
-          endDateAnteMeridianIndex === -1
-            ? endDatePostMeridiumIndex
-            : endDateAnteMeridianIndex;
-
-        const currEndHour = currentEndTimeSelected.substring(
-          0,
-          endDateColonIndex,
-        );
-        const endHourMidnightToNoon =
-          currEndHour === "12" && endDateAnteMeridianIndex !== -1
-            ? "00"
-            : currEndHour;
-        const endHour =
-          endHourMidnightToNoon > "12" && endDatePostMeridiumIndex >= 0
-            ? (Number(currEndHour) + 12).toString()
-            : endHourMidnightToNoon;
-        const endMinute = currentEndTimeSelected.substring(
-          endDateColonIndex + 1,
-          endDateMeridianIndex,
-        );
-        endDate.setHours(Number(endHour));
-        endDate.setMinutes(Number(endMinute));
-
-        currDateSelected.endDate = endDate;
-      }
-    },
-    [currentStartTimeSelected, currentEndTimeSelected, currentDayAddEvent],
-  );
 
   const handleEventTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
     setEventTitle(event.target.value);
@@ -181,41 +91,44 @@ const AddEvent = (props: AddEventProps) => {
       e.preventDefault();
 
       if (
-        currentDayAddEvent &&
-        currentStartTimeSelected &&
-        currentEndTimeSelected &&
         currentDayAddEvent.startDate &&
-        currentDayAddEvent.endDate
+        currentDayAddEvent.endDate &&
+        currentStartTimeSelected &&
+        currentEndTimeSelected
       ) {
-        const event: TimeBlockEvent = {
-          currEventDayOfWeek: currentDayAddEvent.name,
-          currEventMonth: months[currentDayAddEvent.date.getMonth()],
-          currEventDayNumber: currentDayAddEvent.date.getDate(),
-          currEventYear: currentDayAddEvent.date.getFullYear(),
-          startTime: currentStartTimeSelected,
-          endTime: currentEndTimeSelected,
+
+        const currEvent: TimeBlockEvent = {
+          title: eventTitle,
+          guests: eventGuests,
+          location: eventLocation,
+          description: eventDescription,
           startDate: currentDayAddEvent.startDate,
           endDate: currentDayAddEvent.endDate,
-          eventTitle,
-          eventGuests,
-          eventLocation,
-          eventDescription,
           yCoordinate: top,
         };
-        dispatchToStore(postEvent(event));
+
+        timeBlockEvents[currentDayAddEvent.date.getDay()].push(currEvent);
+
+        addCalendarEvent({
+          title: eventTitle,
+          guests: eventGuests,
+          location: eventLocation,
+          description: eventDescription,
+          startDate: currEvent.startDate,
+          endDate: currEvent.endDate,
+        })
 
         setIsEventDialogOpen(false);
       }
     },
     [
       currentDayAddEvent,
-      currentStartTimeSelected,
-      currentEndTimeSelected,
       eventTitle,
       eventGuests,
       eventLocation,
       eventDescription,
       setIsEventDialogOpen,
+      timeBlockEvents,
     ],
   );
 
@@ -225,7 +138,8 @@ const AddEvent = (props: AddEventProps) => {
       left={left}
       top={top}
       ref={addEventDialogRef}
-      onClick={(e: any) => {
+      onClick={(e) => {
+        // New dialog in different position pops up. Stop from bubbling up to parent node.
         e.stopPropagation();
       }}
       onSubmit={(e) => handleSubmit(e)}
@@ -287,8 +201,8 @@ const AddEvent = (props: AddEventProps) => {
         <TabList id="tab-list">
           <DialogSelectedDateAndTime id="dialog-selected-date-and-time">
             <TabListIconWrapper id="tab-list-icon-wrapper" />
-            <TabListAction id="tab-list-action">
-              {currentDayAddEvent && currentStartTimeSelected && (
+            <TabListAction style={{ width: '100%' }} id="tab-list-action">
+              {currentDayAddEvent && (
                 <span style={{ paddingLeft: "5px" }}>
                   <span id="day-name" style={{}}>
                     {currentDayAddEvent.name},
@@ -299,8 +213,34 @@ const AddEvent = (props: AddEventProps) => {
                   <span style={{ marginLeft: "4px" }}>
                     {currentDayAddEvent.date.getDate()}
                   </span>
-                  <span style={{ marginLeft: "15px" }}>
-                    {currentStartTimeSelected} - {currentEndTimeSelected}
+                  <span style={{ marginLeft: '4px' }}>
+                    <SelectTime
+                      value={currentStartTimeSelected}
+                      MenuProps={{ PaperProps: { style: { maxHeight: '200px' }}}}
+                    >
+                      {timeSlots.map((timeSlot, index) => (
+                        <SelectTimeOptions
+                          key={`time-slot-start-${index}`}
+                          value={timeSlot}
+                        >
+                          {timeSlot}
+                        </SelectTimeOptions>
+                      ))}
+                    </SelectTime>
+                    &nbsp;&ndash;&nbsp;
+                    <SelectTime
+                      value={currentEndTimeSelected}
+                      MenuProps={{ PaperProps: { style: { maxHeight: '200px' }}}}
+                    >
+                      {timeSlots.map((timeSlot, index) => (
+                        <SelectTimeOptions
+                          key={`time-slot-end-${index}`}
+                          value={timeSlot}
+                        >
+                          {timeSlot}
+                        </SelectTimeOptions>
+                      ))}
+                    </SelectTime>
                   </span>
                 </span>
               )}
@@ -320,7 +260,7 @@ const AddEvent = (props: AddEventProps) => {
               </svg>
             </TabListIconWrapper>
             <TabListAction id="tab-list-action">
-              <span style={{ paddingLeft: "5px" }}>Find a Time</span>
+              <span style={{ paddingLeft: "12px" }}>Find a Time</span>
             </TabListAction>
           </DialogFindDiffTime>
           <DialogAddWrapper id="dialog-add-wrapper">

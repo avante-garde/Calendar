@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { Dialog, DialogContent, TextField } from "@mui/material";
+import { MenuItem, Select, TextField } from "@mui/material";
 
 interface AddEventDialogProps {
   top: number;
@@ -7,11 +7,14 @@ interface AddEventDialogProps {
 }
 
 const AddEventDialog = styled.form`
-  position: absolute;
+  height: 450px;
+  width: 420px;
+  position: fixed;
   background-color: white;
   border: 1px solid rgb(220, 222, 222);
   border-radius: 5px;
-  top: ${(props: AddEventDialogProps) => props.top}px;
+  // top: ${(props: AddEventDialogProps) => props.top}px;
+  top: calc(100vh / 3);
   left: ${(props: AddEventDialogProps) => props.left}px;
   margin: 0 10px 0 10px;
   z-index: 1;
@@ -21,8 +24,6 @@ const DialogInfo = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 450px;
-  width: 400px;
   padding: 0;
 `;
 
@@ -32,6 +33,7 @@ const DialogHeader = styled.div`
   height: 40px;
   width: 100%;
   background-color: rgb(241, 243, 244);
+  border-radius: 4px 4px 0 0;
 `;
 
 const DialogDragHandleIconWrapper = styled.div`
@@ -127,7 +129,7 @@ const DialogSelectedDateAndTime = styled.div`
   display: flex;
   align-items: center;
   height: 35px;
-  width: 300px;
+  width: 100%;
   margin-top: 5px;
   border-radius: 5px;
 `;
@@ -136,7 +138,7 @@ const DialogFindDiffTime = styled.div`
   display: flex;
   align-items: center;
   height: 35px;
-  width: 300px;
+  width: 100%;
   margin-top: 5px;
   border-radius: 5px;
   color: rgb(26, 115, 232);
@@ -147,7 +149,7 @@ const DialogFindDiffTime = styled.div`
 
 const DialogAddWrapper = styled.div`
   display: flex;
-  width: 300px;
+  width: 100%;
 `;
 
 const DialogAdd = styled(TextField)`
@@ -187,7 +189,7 @@ const DialogAdd = styled(TextField)`
 
 const TabList = styled.div`
   height: 300px;
-  width: 350px;
+  width: 370px;
 `;
 
 const TabListIconWrapper = styled.div`
@@ -226,6 +228,35 @@ const SaveButton = styled.button`
   }
 `;
 
+const SelectTime = styled(Select)`
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: underline;
+  height: 20px;
+
+  .MuiSelect-select.MuiSelect-outlined.MuiInputBase-input.MuiOutlinedInput-input {
+    padding-right: 0;
+  }
+
+  & div {
+    padding: 0;
+  }
+
+  & svg {
+    display: none;
+  }
+
+  & fieldset {
+    display: none;
+  }
+`;
+
+const SelectTimeOptions = styled(MenuItem)`
+  height: 30px;
+  font-size: 14px;
+  font-weight: 500;
+`;
+
 export {
   AddEventDialog,
   DialogHeader,
@@ -248,4 +279,6 @@ export {
   DialogAddWrapper,
   SaveButtonWrapper,
   SaveButton,
+  SelectTime,
+  SelectTimeOptions,
 };
